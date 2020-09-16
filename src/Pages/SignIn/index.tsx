@@ -1,5 +1,11 @@
 import React, { useCallback, useRef } from 'react';
-import { Image, KeyboardAvoidingView, Platform, View } from 'react-native';
+import {
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  View,
+  TextInput,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Form } from '@unform/mobile';
 import { FormHandles } from '@unform/core';
@@ -21,6 +27,7 @@ const SignIn: React.FC = () => {
   const navigation = useNavigation();
 
   const formRef = useRef<FormHandles>(null);
+  const inputPasswordRef = useRef<TextInput>(null);
   const handleFormSubmit = useCallback((data: any) => {
     console.log(data);
   }, []);
@@ -41,8 +48,25 @@ const SignIn: React.FC = () => {
             onSubmit={handleFormSubmit}
             style={{ width: '100%' }}
           >
-            <Input name="email" icon="mail" placeholder="E-mail" />
-            <Input name="password" icon="lock" placeholder="Senha" />
+            <Input
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              name="email"
+              icon="mail"
+              returnKeyType="next"
+              placeholder="E-mail"
+              onSubmitEditing={() => inputPasswordRef.current?.focus()}
+            />
+            <Input
+              ref={inputPasswordRef}
+              name="password"
+              icon="lock"
+              placeholder="Senha"
+              secureTextEntry
+              returnKeyType="send"
+              onSubmitEditing={() => formRef.current?.submitForm()}
+            />
             <Button onPress={() => formRef.current?.submitForm()}>
               Entrar
             </Button>
