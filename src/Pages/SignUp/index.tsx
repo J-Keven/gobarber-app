@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  Keyboard,
 } from 'react-native';
 import * as Yup from 'yup';
 import { Form } from '@unform/mobile';
@@ -16,6 +17,8 @@ import logoImg from '../../assets/logo.png';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import getValidatorErrors from '../../utils/getValidatorErrors';
+import apiClient from '../../service/apiClient';
+
 import { Conainer, Title, GoBackButton, GoBackButtonText } from './styles';
 
 interface FormDataTypes {
@@ -29,37 +32,67 @@ const SignUp: React.FC = () => {
   const formRef = useRef<FormHandles>(null);
   const inputEmailRef = useRef<TextInput>(null);
   const inputPasswordRef = useRef<TextInput>(null);
+  const [openKeyboard, setOpenKeyboard] = useState(false);
+  const handleFormSubmit = useCallback(
+    async (data: FormDataTypes) => {
+      try {
+        formRef.current?.setErrors({});
 
-  const handleFormSubmit = useCallback(async (data: FormDataTypes) => {
-    try {
-      formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          name: Yup.string().required('Nome Obrigatório'),
+          email: Yup.string()
+            .required('O E-mail é obrigatório')
+            .email('Digite um E-mail válido'),
+          password: Yup.string().min(
+            6,
+            'A senha deve conter no minimo 6 digitos',
+          ),
+        });
 
-      const schema = Yup.object().shape({
-        name: Yup.string().required('Nome Obrigatório'),
-        email: Yup.string()
-          .required('O E-mail é obrigatório')
-          .email('Digite um E-mail válido'),
-        password: Yup.string().min(
-          6,
-          'A senha deve conter no minimo 6 digitos',
-        ),
-      });
+        await schema.validate(data, {
+          abortEarly: false,
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-    } catch (error) {
-      if (error instanceof Yup.ValidationError) {
-        const errors = getValidatorErrors(error);
-        formRef.current?.setErrors(errors);
-      } else {
+        await apiClient.post('/users', data);
+
         Alert.alert(
-          'Erro ao realizar cadastro',
-          'Ocorreu um erro ao realizar o seu cadastro, por favor tente novamente',
+          'Cadastro Realizado',
+          'O seu cadastro foi Realizado com sucesso, você já pode realizar o seu logon',
         );
+
+        navigation.goBack();
+      } catch (error) {
+        if (error instanceof Yup.ValidationError) {
+          const errors = getValidatorErrors(error);
+          formRef.current?.setErrors(errors);
+        } else {
+          Alert.alert(
+            'Erro ao realizar cadastro',
+            'Ocorreu um erro ao realizar o seu cadastro, por favor tente novamente',
+          );
+        }
       }
-    }
+    },
+    [navigation],
+  );
+
+  const handleKeyboardDidShow = useCallback(() => {
+    setOpenKeyboard(true);
   }, []);
+
+  const handleKeyboardDidHide = useCallback(() => {
+    setOpenKeyboard(false);
+  }, []);
+
+  useEffect(() => {
+    Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
+    Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
+
+    return () => {
+      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShow);
+      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHide);
+    };
+  });
   return (
     <>
       <KeyboardAvoidingView
@@ -118,10 +151,12 @@ const SignUp: React.FC = () => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <GoBackButton onPress={() => navigation.goBack()}>
-        <Feather name="arrow-left" size={24} color="#f4ede8" />
-        <GoBackButtonText>Voltar para o login</GoBackButtonText>
-      </GoBackButton>
+      {!openKeyboard && (
+        <GoBackButton onPress={() => navigation.goBack()}>
+          <Feather name="arrow-left" size={24} color="#f4ede8" />
+          <GoBackButtonText>Voltar para o login</GoBackButtonText>
+        </GoBackButton>
+      )}
     </>
   );
 };

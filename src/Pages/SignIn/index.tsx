@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -6,6 +6,7 @@ import {
   View,
   TextInput,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Form } from '@unform/mobile';
@@ -16,6 +17,7 @@ import logoImg from '../../assets/logo.png';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import getValidatorErros from '../../utils/getValidatorErrors';
+import { useAuth } from '../../hooks/auth';
 import {
   Container,
   Title,
@@ -32,34 +34,60 @@ interface FormDataTypes {
 
 const SignIn: React.FC = () => {
   const navigation = useNavigation();
-
+  const { sigIn } = useAuth();
   const formRef = useRef<FormHandles>(null);
   const inputPasswordRef = useRef<TextInput>(null);
-  const handleFormSubmit = useCallback(async (data: FormDataTypes) => {
-    try {
-      formRef.current?.setErrors({});
-      const schema = Yup.object().shape({
-        email: Yup.string()
-          .required('O E-mail é origatório')
-          .email('Digite um E-mail válido'),
+  const [opneKeyboard, setOpenKeyboard] = useState(false);
+  const handleFormSubmit = useCallback(
+    async (data: FormDataTypes) => {
+      try {
+        formRef.current?.setErrors({});
+        const schema = Yup.object().shape({
+          email: Yup.string()
+            .required('O E-mail é origatório')
+            .email('Digite um E-mail válido'),
 
-        password: Yup.string().required('Senha obrigatória'),
-      });
+          password: Yup.string().required('Senha obrigatória'),
+        });
 
-      await schema.validate(data, {
-        abortEarly: false,
-      });
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const erros = getValidatorErros(err);
-        formRef.current?.setErrors(erros);
-      } else {
-        Alert.alert(
-          'Erro na altenticação',
-          'Ocorreu um erro ao fazer login, cheque suas credenciais.',
-        );
+        await schema.validate(data, {
+          abortEarly: false,
+        });
+
+        await sigIn(data);
+
+        navigation.navigate('Dashboard');
+      } catch (err) {
+        if (err instanceof Yup.ValidationError) {
+          const erros = getValidatorErros(err);
+          formRef.current?.setErrors(erros);
+        } else {
+          Alert.alert(
+            'Erro na altenticação',
+            'Ocorreu um erro ao fazer login, cheque suas credenciais.',
+          );
+        }
       }
-    }
+    },
+    [sigIn, navigation],
+  );
+
+  const handleKeyboardDidShow = useCallback(() => {
+    setOpenKeyboard(true);
+  }, []);
+
+  const handleKeyboardDidHide = useCallback(() => {
+    setOpenKeyboard(false);
+  }, []);
+
+  useEffect(() => {
+    Keyboard.addListener('keyboardDidShow', handleKeyboardDidShow);
+    Keyboard.addListener('keyboardDidHide', handleKeyboardDidHide);
+
+    return () => {
+      Keyboard.removeListener('keyboardDidShow', handleKeyboardDidShow);
+      Keyboard.removeListener('keyboardDidHide', handleKeyboardDidHide);
+    };
   }, []);
   return (
     <>
@@ -106,10 +134,12 @@ const SignIn: React.FC = () => {
           </ForgetPassword>
         </Container>
       </KeyboardAvoidingView>
-      <CreateAccountButton onPress={() => navigation.navigate('Signup')}>
-        <Feather name="log-in" size={24} color="#FF9000" />
-        <CreateAccountButtonText>Criar uma conta</CreateAccountButtonText>
-      </CreateAccountButton>
+      {!opneKeyboard && (
+        <CreateAccountButton onPress={() => navigation.navigate('Signup')}>
+          <Feather name="log-in" size={24} color="#FF9000" />
+          <CreateAccountButtonText>Criar uma conta</CreateAccountButtonText>
+        </CreateAccountButton>
+      )}
     </>
   );
 };
