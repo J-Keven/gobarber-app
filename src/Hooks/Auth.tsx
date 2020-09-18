@@ -9,6 +9,7 @@ interface CredentialsProps {
 
 interface AuthContextProps {
   user: object;
+  loading: boolean;
   sigIn({ email, password }: CredentialsProps): void;
   sigOut(): void;
 }
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextProps>({} as AuthContextProps);
 
 const AuthProvide: React.FC = ({ children }) => {
   const [userData, setUserData] = useState<UserStatet>({} as UserStatet);
+  const [loading, setLoading] = useState(true);
   async function sigIn({ email, password }: CredentialsProps) {
     const { data } = await apiClient.post('login', {
       email,
@@ -38,9 +40,9 @@ const AuthProvide: React.FC = ({ children }) => {
     });
   }
   async function sigOut() {
-    await asyncStorage.multiRemove(['@gobarber:token', '@gobarber:user']);
-
     setUserData({} as UserStatet);
+
+    await asyncStorage.multiRemove(['@gobarber:token', '@gobarber:user']);
   }
 
   useEffect(() => {
@@ -49,18 +51,24 @@ const AuthProvide: React.FC = ({ children }) => {
         '@gobarber:token',
         '@gobarber:user',
       ]);
+
       if (token[1] && user[1]) {
         setUserData({
           token: token[1],
           user: JSON.parse(user[1]),
         });
       }
+
+      setLoading(false);
     }
 
     handleLoadStorageData();
   }, []);
+
   return (
-    <AuthContext.Provider value={{ user: userData.user, sigIn, sigOut }}>
+    <AuthContext.Provider
+      value={{ user: userData.user, loading, sigIn, sigOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

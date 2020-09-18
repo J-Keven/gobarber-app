@@ -1,5 +1,5 @@
 import React from 'react';
-import { AuthProvide } from './auth';
+import { AuthProvide } from './Auth';
 
 const Providers: React.FC = ({ children }) => {
   return <AuthProvide>{children}</AuthProvide>;
