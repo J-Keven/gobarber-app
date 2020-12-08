@@ -6,16 +6,21 @@ interface CredentialsProps {
   email: string;
   password: string;
 }
-
+interface UserProps {
+  name: string;
+  email: string;
+  id: string;
+  avatar_url: string;
+}
 interface AuthContextProps {
-  user: object;
+  user: UserProps;
   loading: boolean;
   sigIn({ email, password }: CredentialsProps): void;
   sigOut(): void;
 }
 
 interface UserStatet {
-  user: object;
+  user: UserProps;
   token: string;
 }
 const AuthContext = createContext<AuthContextProps>({} as AuthContextProps);

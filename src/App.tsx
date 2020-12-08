@@ -9,7 +9,7 @@ import Providers from './Hooks';
 const App: React.FC = () => {
   return (
     <NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor="#312E38" />
+      <StatusBar barStyle="light-content" backgroundColor="#28262e" />
       <Providers>
         <View style={{ flex: 1, backgroundColor: '#312E38' }}>
           <Routes />
