@@ -19,20 +19,23 @@ interface AuthContextProps {
   sigOut(): void;
 }
 
-interface UserStatet {
+interface UserState {
   user: UserProps;
   token: string;
 }
 const AuthContext = createContext<AuthContextProps>({} as AuthContextProps);
 
 const AuthProvide: React.FC = ({ children }) => {
-  const [userData, setUserData] = useState<UserStatet>({} as UserStatet);
+  const [userData, setUserData] = useState<UserState>({} as UserState);
   const [loading, setLoading] = useState(true);
+
   async function sigIn({ email, password }: CredentialsProps) {
     const { data } = await apiClient.post('login', {
       email,
       password,
     });
+
+    apiClient.defaults.headers.authorization = `Bearer ${data.token}`;
 
     await asyncStorage.multiSet([
       ['@gobarber:token', data.token],
@@ -45,7 +48,7 @@ const AuthProvide: React.FC = ({ children }) => {
     });
   }
   async function sigOut() {
-    setUserData({} as UserStatet);
+    setUserData({} as UserState);
 
     await asyncStorage.multiRemove(['@gobarber:token', '@gobarber:user']);
   }
@@ -58,6 +61,7 @@ const AuthProvide: React.FC = ({ children }) => {
       ]);
 
       if (token[1] && user[1]) {
+        apiClient.defaults.headers.authorization = `Bearer ${token[1]}`;
         setUserData({
           token: token[1],
           user: JSON.parse(user[1]),

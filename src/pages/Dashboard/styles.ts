@@ -1,4 +1,7 @@
 import styled from 'styled-components/native';
+import { RectButton } from 'react-native-gesture-handler';
+import { FlatList } from 'react-native';
+import ProvidersProps from './types';
 
 export const Container = styled.View`
   flex: 1;
@@ -25,25 +28,25 @@ export const ProfileButton = styled.TouchableOpacity`
   border-width: 0;
 `;
 export const UserAvatar = styled.Image`
-  width: 56;
-  height: 56;
-  border-radius: 28;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
 `;
 
-export const Content = styled.View`
-  justify-content: center;
-  padding-left: 24px;
-  padding-right: 24px;
+// eslint-disable-next-line prettier/prettier
+export const ProvaidersList = styled( FlatList as new () => FlatList<ProvidersProps> )`
+  padding: 32px 24px;
 `;
-export const ContentTitle = styled.Text`
-  margin-top: 32px;
+
+export const ProviderListHeader = styled.Text`
   color: #f4ede8;
   font-size: 25px;
   line-height: 33px;
   font-family: 'RobotoSlab-Medium';
   margin-bottom: 24px;
 `;
-export const ProviderContainer = styled.View`
+
+export const ProviderContainer = styled(RectButton)`
   flex-direction: row;
   margin-bottom: 16px;
   padding: 20px 16px;
