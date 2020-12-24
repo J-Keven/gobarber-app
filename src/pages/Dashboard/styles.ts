@@ -1,7 +1,7 @@
 import styled from 'styled-components/native';
 import { RectButton } from 'react-native-gesture-handler';
 import { FlatList } from 'react-native';
-import ProvidersProps from './types';
+import ProvidersProps from '../types/IProvider';
 
 export const Container = styled.View`
   flex: 1;

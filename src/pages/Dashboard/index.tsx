@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../Hooks/Auth';
-import ProvidersProps from './types';
+import ProvidersProps from '../types/IProvider';
 import api from '../../service/apiClient';
 
 import {
@@ -33,9 +33,12 @@ const Dashbaord: React.FC = () => {
     });
   }, []);
 
-  const handleNavigateToCreateAppointment = useCallback(providerId => {
-    navigation.navigate('CreateAppointment', { providerId });
-  }, []);
+  const handleNavigateToCreateAppointment = useCallback(
+    providerId => {
+      navigation.navigate('CreateAppointment', { providerId });
+    },
+    [navigation],
+  );
   return (
     <Container>
       <Header>
