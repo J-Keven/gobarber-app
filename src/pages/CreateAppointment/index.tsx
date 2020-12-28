@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import Feather from 'react-native-vector-icons/Feather';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import DateTimePiker from '@react-native-community/datetimepicker';
 import { useAuth } from '../../Hooks/Auth';
@@ -56,7 +56,7 @@ const CreateAppointment: React.FC = () => {
     HoursAvailabilityItemProps[]
   >([]);
 
-  const [selectedHour, setSelectedHour] = useState(null);
+  const [selectedHour, setSelectedHour] = useState();
 
   const handleSelectProvider = useCallback((id: string) => {
     setProviderSelected(id);
@@ -84,6 +84,35 @@ const CreateAppointment: React.FC = () => {
   const handleSelectHour = useCallback(hour => {
     setSelectedHour(hour);
   }, []);
+
+  const handleCreateAppointment = useCallback(async () => {
+    if (!selectedHour) {
+      Alert.alert(
+        'Erro ao realizar o agendamento.',
+        'Para realizar um agendamento é necessário esconlher um horario disponível.',
+      );
+    }
+
+    try {
+      apiClient.post('/appointments', {
+        provider_id: providerSelected,
+        date: new Date(
+          selectedDate.getFullYear(),
+          selectedDate.getMonth(),
+          selectedDate.getDate(),
+          selectedHour,
+        ),
+      });
+
+      navigation.navigate('AppointmentCreated');
+    } catch (err) {
+      Alert.alert(
+        'Erro ao realizar o agendamento.',
+        'Ocoreu um erro ao realizar o agendamento, por favor tente novamente!',
+      );
+    }
+  }, [selectedHour, selectedDate, providerSelected]);
+
   const morningAvailability = useMemo(() => {
     return hoursAvailability.filter(
       item => item.hour <= 12 && item.avilability,
@@ -216,7 +245,7 @@ const CreateAppointment: React.FC = () => {
           />
         </HoursListContainer>
       </Schedule>
-      <CreateAppointmentButton>
+      <CreateAppointmentButton onPress={handleCreateAppointment}>
         <CreateAppointmentButtonText>Agendar</CreateAppointmentButtonText>
       </CreateAppointmentButton>
     </Container>
